@@ -12,12 +12,12 @@ public class ConvolutionProcessor {
 
         BufferedImage outputImage = new BufferedImage(width, height, inputImage.getType());
 
-        // Loop over each pixel in the input image
+        // loop over each pixel in the input image
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 double red = 0, green = 0, blue = 0;
 
-                // Apply kernel
+                // apply kernel
                 for (int i = 0; i < kernelWidth; i++) {
                     for (int j = 0; j < kernelHeight; j++) {
                         int pixelX = x + i - kernelWidth / 2;
@@ -37,7 +37,7 @@ public class ConvolutionProcessor {
                 int g = Math.min(Math.max((int) green, 0), 255);
                 int b = Math.min(Math.max((int) blue, 0), 255);
 
-                // Set the output pixel
+                // set the output pixel
                 outputImage.setRGB(x, y, (r << 16) | (g << 8) | b);
             }
         }

@@ -7,11 +7,11 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
-        // Input and output file paths
-        String inputImagePath = "src/main/resources/input4.jpg";  // Update with your image path
-        String outputImagePath = "src/main/resources/output5.jpg";
+        // image
+        String inputImagePath = "src/main/resources/input4.jpg";
+        String outputImagePath = "src/main/resources/output4.jpg";
 
-        // Define a kernel (Edge Detection)
+        // Defining kernel (edge Detection)
         double[][] kernel = {
                 {0, -1, 0},
                 {-1, 4, -1},
@@ -19,13 +19,13 @@ public class Main {
         };
 
         try {
-            // Read the input image
+            // read the input image
             BufferedImage inputImage = ImageIO.read(new File(inputImagePath));
 
-            // Apply convolution
+            // apply convolution
             BufferedImage outputImage = ConvolutionProcessor.applyConvolution(inputImage, kernel);
 
-            // Write the output image
+            //write the output image
             ImageIO.write(outputImage, "jpg", new File(outputImagePath));
 
             System.out.println("Image processed successfully! Check " + outputImagePath);
