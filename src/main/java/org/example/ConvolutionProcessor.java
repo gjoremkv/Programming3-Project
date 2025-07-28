@@ -87,6 +87,12 @@ public class ConvolutionProcessor {
     }
 
     private static int clamp(int value, int min, int max) {
-        return value < min ? min : (value > max ? max : value);
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
     }
 }
