@@ -1,7 +1,16 @@
+# Maven
 target/
+
+# IDE
 .idea/
 *.class
+
+# Temporary files
 src/main/resources/gui_input_temp.jpg
 src/main/resources/gui_operation.txt
-test_images/
-results/
+
+# Allow test_images/ for GitHub demonstration
+# test_images/
+
+# Results directory (can be regenerated)
+# results/
