@@ -11,6 +11,7 @@ public class Main {
         String mode = "sequential"; // sequential, parallel
         String inputImagePath = "src/main/resources/input4.jpg";
         String outputImagePath = "src/main/resources/output4.jpg";
+        String operation = "edge"; // edge, blur, sharpen
 
         // Parse command line arguments
         if (args.length > 0) {
@@ -22,13 +23,36 @@ public class Main {
         if (args.length > 2) {
             outputImagePath = args[2];
         }
+        if (args.length > 3) {
+            operation = args[3].toLowerCase();
+        }
 
-        // Defining kernel (edge Detection)
-        double[][] kernel = {
-                {0, -1, 0},
-                {-1, 4, -1},
-                {0, -1, 0}
-        };
+        // Define kernels for different operations
+        double[][] kernel;
+        switch (operation) {
+            case "blur":
+                kernel = new double[][]{
+                    {1/9.0, 1/9.0, 1/9.0},
+                    {1/9.0, 1/9.0, 1/9.0},
+                    {1/9.0, 1/9.0, 1/9.0}
+                };
+                break;
+            case "sharpen":
+                kernel = new double[][]{
+                    {0, -1, 0},
+                    {-1, 5, -1},
+                    {0, -1, 0}
+                };
+                break;
+            case "edge":
+            default:
+                kernel = new double[][]{
+                    {0, -1, 0},
+                    {-1, 4, -1},
+                    {0, -1, 0}
+                };
+                break;
+        }
 
         try {
             // Read the input image
@@ -54,13 +78,13 @@ public class Main {
             }
 
             long endTime = System.nanoTime();
-            double executionTimeMs = (endTime - startTime) / 1_000_000.0;
+            double executionTime = (endTime - startTime) / 1_000_000.0;
 
             // Write the output image
             ImageIO.write(outputImage, "jpg", new File(outputImagePath));
 
             System.out.println("Image processed successfully! Check " + outputImagePath);
-            System.out.println("Execution time: " + String.format("%.2f", executionTimeMs) + " ms");
+            System.out.println("Execution time: " + String.format("%.3f", executionTime) + " ms");
             System.out.println("Available processors: " + Runtime.getRuntime().availableProcessors());
 
         } catch (IOException e) {

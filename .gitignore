@@ -1,2 +1,7 @@
-/PARALLEL_IMPLEMENTATION.md
-/src/main/java/org/example/parallel_implementation.md
+target/
+.idea/
+*.class
+src/main/resources/gui_input_temp.jpg
+src/main/resources/gui_operation.txt
+test_images/
+results/
