@@ -9,6 +9,25 @@ target/
 src/main/resources/gui_input_temp.jpg
 src/main/resources/gui_operation.txt
 
+# Documentation files (local only)
+*.md
+
+# LaTeX temporary files
+*.aux
+*.log
+*.out
+*.toc
+*.nav
+*.snm
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
+# Project reports (local only)
+*report*.tex
+*report*.pdf
+academic_report.*
+
 # Allow test_images/ for GitHub demonstration
 # test_images/
 
