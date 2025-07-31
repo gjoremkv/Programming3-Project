@@ -5,6 +5,7 @@ target/
 .idea/
 *.class
 
+maven-status/
 # Temporary files
 src/main/resources/gui_input_temp.jpg
 src/main/resources/gui_operation.txt
