@@ -36,9 +36,9 @@ public class RealDistributedConvolution {
                             case "blur":
                                 operation = "Blur";
                                 kernel = new double[][]{
-                                    {1/9.0, 1/9.0, 1/9.0},
-                                    {1/9.0, 1/9.0, 1/9.0},
-                                    {1/9.0, 1/9.0, 1/9.0}
+                                    {1/16.0, 2/16.0, 1/16.0},
+                                    {2/16.0, 4/16.0, 2/16.0},
+                                    {1/16.0, 2/16.0, 1/16.0}
                                 };
                                 break;
                             case "sharpen":
@@ -50,6 +50,7 @@ public class RealDistributedConvolution {
                                 };
                                 break;
                             case "edge detection":
+                            case "edge":
                             default:
                                 operation = "Edge Detection";
                                 // Keep default kernel
@@ -85,6 +86,14 @@ public class RealDistributedConvolution {
             
             long setupEndTime = System.nanoTime();
             long distributionStartTime = System.nanoTime();
+
+            // Broadcast kernel to all worker processes
+            double[] flatKernel = {kernel[0][0], kernel[0][1], kernel[0][2],
+                                   kernel[1][0], kernel[1][1], kernel[1][2],
+                                   kernel[2][0], kernel[2][1], kernel[2][2]};
+            for (int i = 1; i < size; i++) {
+                MPI.COMM_WORLD.Send(flatKernel, 0, 9, MPI.DOUBLE, i, 99);
+            }
 
             // Calculate chunk distribution with ghost cells for proper edge detection
             int kernelRadius = 1; // For 3x3 kernel, we need 1 pixel overlap
@@ -167,6 +176,22 @@ public class RealDistributedConvolution {
         } else {
             // Worker process
             System.out.println("Worker process " + rank + " started");
+            
+            // Receive kernel from master
+            double[] flatKernel = new double[9];
+            MPI.COMM_WORLD.Recv(flatKernel, 0, 9, MPI.DOUBLE, MASTER, 99);
+            
+            // Reconstruct 3x3 kernel
+            kernel = new double[][]{
+                {flatKernel[0], flatKernel[1], flatKernel[2]},
+                {flatKernel[3], flatKernel[4], flatKernel[5]},
+                {flatKernel[6], flatKernel[7], flatKernel[8]}
+            };
+            
+            System.out.println("Worker " + rank + " received kernel: [" + 
+                             flatKernel[0] + ", " + flatKernel[1] + ", " + flatKernel[2] + "; " +
+                             flatKernel[3] + ", " + flatKernel[4] + ", " + flatKernel[5] + "; " +
+                             flatKernel[6] + ", " + flatKernel[7] + ", " + flatKernel[8] + "]");
             
             // Receive metadata: [width, actualChunkHeight, yStart, paddingTop, validHeight]
             int[] metadata = new int[5];
