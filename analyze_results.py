@@ -63,7 +63,7 @@ def load_data():
         df['megapixels'] = df['pixels'] / 1_000_000
         return df
     except FileNotFoundError:
-        print("❌ Error: No timing data found!")
+        print(" Error: No timing data found!")
         print("📋 Run ./process_all_images.sh first to generate data")
         return None
 
@@ -74,7 +74,7 @@ def create_output_dir():
 
 def analyze_performance(df):
     """Generate comprehensive performance analysis"""
-    print("📊 COMPREHENSIVE PERFORMANCE ANALYSIS")
+    print(" COMPREHENSIVE PERFORMANCE ANALYSIS")
     print("=" * 50)
     
     # Overall averages
@@ -103,7 +103,7 @@ def plot_operation_performance(df, operation, output_dir):
     op_data = df[df['operation'] == operation].copy()
     
     if op_data.empty:
-        print(f"❌ No data found for operation: {operation}")
+        print(f" No data found for operation: {operation}")
         return
     
     # Convert to seconds for better readability
@@ -215,7 +215,7 @@ def plot_operation_performance(df, operation, output_dir):
                 facecolor='white', edgecolor='none')
     plt.savefig(f'{output_dir}/{filename}.pdf', bbox_inches='tight',
                 facecolor='white', edgecolor='none')
-    print(f"📊 Saved: {output_dir}/{filename}.png")
+    print(f" Saved: {output_dir}/{filename}.png")
     plt.close()
 
 def plot_speedup_summary(df, output_dir):
@@ -256,7 +256,7 @@ def plot_speedup_summary(df, output_dir):
                 speedup_data.append(speedup_row)
     
     if not speedup_data:
-        print("❌ No speedup data available")
+        print(" No speedup data available")
         return
     
     speedup_df = pd.DataFrame(speedup_data)
@@ -310,7 +310,7 @@ def plot_speedup_summary(df, output_dir):
             transform=ax.transAxes, fontsize=9, verticalalignment='top',
             bbox=dict(boxstyle='round,pad=0.5', facecolor='lightyellow', alpha=0.8))
     
-    # Professional legend
+    
     legend = ax.legend(fontsize=11, loc='upper right', frameon=True, 
                       shadow=True, fancybox=True)
     legend.get_frame().set_facecolor('white')
@@ -339,14 +339,10 @@ def plot_speedup_summary(df, output_dir):
                 facecolor='white', edgecolor='none')
     plt.savefig(f'{output_dir}/{filename}.pdf', bbox_inches='tight',
                 facecolor='white', edgecolor='none')
-    print(f"📊 Saved: {output_dir}/{filename}.png")
+    print(f" Saved: {output_dir}/{filename}.png")
     plt.close()
 
-def generate_latex_report(df, output_dir):
-    """Generate LaTeX code for including in reports"""
-    latex_content = """
-% LaTeX code for including performance analysis graphs
-% Copy this into your LaTeX document
+
 
 \\section{Performance Analysis Results}
 
@@ -386,10 +382,10 @@ def generate_latex_report(df, output_dir):
     with open(f'{output_dir}/latex_figures.tex', 'w') as f:
         f.write(latex_content)
     
-    print(f"📝 Saved: {output_dir}/latex_figures.tex")
+    print(f" Saved: {output_dir}/latex_figures.tex")
 
 def main():
-    print("🚀 CLEAN OPERATION-SPECIFIC PERFORMANCE ANALYSIS")
+    print(" CLEAN OPERATION-SPECIFIC PERFORMANCE ANALYSIS")
     print("=" * 50)
     
     # Load data
@@ -403,10 +399,10 @@ def main():
     # Generate analysis
     analyze_performance(df)
     
-    print(f"\n📈 GENERATING CLEAN GRAPHS...")
+    print(f"\n GENERATING CLEAN GRAPHS...")
     print("-" * 40)
     
-    # Generate graphs for each operation (one clean graph each)
+    # Generate graphs for each operation (one graph each)
     operations = ['edge_detection', 'blur', 'sharpen']
     for operation in operations:
         plot_operation_performance(df, operation, output_dir)
@@ -414,22 +410,20 @@ def main():
     # Generate speedup summary
     plot_speedup_summary(df, output_dir)
     
-    # Generate LaTeX code
-    generate_latex_report(df, output_dir)
+ 
     
-    print(f"\n✅ ANALYSIS COMPLETE!")
+    print(f"\nANALYSIS COMPLETE!")
     print("=" * 50)
-    print(f"📁 All graphs saved to: {output_dir}/")
-    print(f"📊 Generated files:")
-    print(f"  📈 Operation-specific graphs:")
+    print(f" All graphs saved to: {output_dir}/")
+    print(f" Generated files:")
+    print(f"   Operation-specific graphs:")
     print(f"    • edge_detection_performance.png/.pdf")
     print(f"    • blur_performance.png/.pdf") 
     print(f"    • sharpen_performance.png/.pdf")
-    print(f"  📊 Summary graph:")
+    print(f"   Summary graph:")
     print(f"    • speedup_summary.png/.pdf")
-    print(f"  📝 latex_figures.tex (LaTeX code)")
-    print(f"\n💡 4 clean graphs total - perfect for university reports!")
-    print(f"📝 No more overlapping labels or cluttered layouts!")
+    print(f"   latex_figures.tex (LaTeX code)")
+    print(f" No more overlapping labels or cluttered layouts!")
 
 if __name__ == "__main__":
     main() 

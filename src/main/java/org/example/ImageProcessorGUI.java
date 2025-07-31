@@ -371,7 +371,14 @@ public class ImageProcessorGUI extends JFrame {
         }
 
         // Run distributed processing with 4 processes (1 master + 3 workers) with proper ghost cells
-        ProcessBuilder pb = new ProcessBuilder("mpjrun.sh", "-np", "4", "-cp", "src/main/java", "org.example.RealDistributedConvolution");
+        ProcessBuilder pb = new ProcessBuilder(
+            "mpjrun.sh", "-np", "4", "-cp", "target/classes", 
+            "org.example.RealDistributedConvolution",
+            "src/main/resources/gui_input_temp.jpg",  // input file
+            "src/main/resources/output_real_distributed.jpg",  // output file
+            operation.toLowerCase()  // e.g. "edge"
+        );
+        
         pb.directory(new File("."));
         
         Process process = pb.start();
