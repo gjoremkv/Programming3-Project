@@ -9,7 +9,9 @@ public class Main {
     public static void main(String[] args) {
         // Default values
         String mode = "sequential"; // sequential, parallel
-        String inputImagePath = "src/main/resources/input4.jpg";
+        String inputResourceName = "/home/gjore/IdeaProjects/prog3project/src/main/resources/test10(3840-2160).jpg";
+
+
         String outputImagePath = "src/main/resources/output4.jpg";
         String operation = "edge"; // edge, blur, sharpen
 
@@ -18,7 +20,7 @@ public class Main {
             mode = args[0].toLowerCase();
         }
         if (args.length > 1) {
-            inputImagePath = args[1];
+            inputResourceName = args[1];
         }
         if (args.length > 2) {
             outputImagePath = args[2];
@@ -55,9 +57,14 @@ public class Main {
         }
 
         try {
-            // Read the input image
-            BufferedImage inputImage = ImageIO.read(new File(inputImagePath));
-            System.out.println("Processing image: " + inputImagePath);
+            File inputFile = new File(inputResourceName);
+            if (!inputFile.exists()) {
+                throw new IOException("File not found: " + inputFile.getAbsolutePath());
+            }
+
+            BufferedImage inputImage = ImageIO.read(inputFile);
+
+            System.out.println("Processing image: " + inputResourceName);
             System.out.println("Image dimensions: " + inputImage.getWidth() + "x" + inputImage.getHeight());
             System.out.println("Mode: " + mode);
 

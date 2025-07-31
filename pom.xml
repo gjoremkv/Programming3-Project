@@ -24,7 +24,7 @@
             <artifactId>mpj</artifactId>
             <version>0.44</version>
             <scope>system</scope>
-            <systemPath>/Users/gregorantonaz/mpj/lib/mpj.jar</systemPath>
+            <systemPath>/home/gjore/mpjexpress/mpj-v0_44/lib/mpj.jar</systemPath>
         </dependency>
     </dependencies>
 

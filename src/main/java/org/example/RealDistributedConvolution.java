@@ -14,14 +14,14 @@ public class RealDistributedConvolution {
 
         final int MASTER = 0;
         BufferedImage inputImage = null;
-        
+
         // Default to edge detection kernel
         double[][] kernel = {
                 {0, -1, 0},
                 {-1, 4, -1},
                 {0, -1, 0}
         };
-        
+
         String operation = "Edge Detection";
         long startTime = 0;
 
@@ -36,17 +36,17 @@ public class RealDistributedConvolution {
                             case "blur":
                                 operation = "Blur";
                                 kernel = new double[][]{
-                                    {1/16.0, 2/16.0, 1/16.0},
-                                    {2/16.0, 4/16.0, 2/16.0},
-                                    {1/16.0, 2/16.0, 1/16.0}
+                                        {1/16.0, 2/16.0, 1/16.0},
+                                        {2/16.0, 4/16.0, 2/16.0},
+                                        {1/16.0, 2/16.0, 1/16.0}
                                 };
                                 break;
                             case "sharpen":
                                 operation = "Sharpen";
                                 kernel = new double[][]{
-                                    {0, -1, 0},
-                                    {-1, 5, -1},
-                                    {0, -1, 0}
+                                        {0, -1, 0},
+                                        {-1, 5, -1},
+                                        {0, -1, 0}
                                 };
                                 break;
                             case "edge detection":
@@ -61,13 +61,13 @@ public class RealDistributedConvolution {
                     System.out.println("Could not read operation file, using default (Edge Detection)");
                 }
             }
-            
+
             System.out.println("Starting real distributed convolution with " + size + " processes");
             System.out.println("Operation: " + operation);
             startTime = System.nanoTime();
-            
+
             long setupStartTime = System.nanoTime();
-            
+
             // Load input image - check for GUI input first, then default
             File inputFile = new File("src/main/resources/gui_input_temp.jpg");
             if (!inputFile.exists()) {
@@ -76,21 +76,21 @@ public class RealDistributedConvolution {
             } else {
                 System.out.println("Using GUI input image: gui_input_temp.jpg");
             }
-            
+
             inputImage = ImageIO.read(inputFile);
             int height = inputImage.getHeight();
             int width = inputImage.getWidth();
-            
+
             System.out.println("Image dimensions: " + width + "x" + height);
             System.out.println("Processing with " + (size - 1) + " worker processes");
-            
+
             long setupEndTime = System.nanoTime();
             long distributionStartTime = System.nanoTime();
 
             // Broadcast kernel to all worker processes
             double[] flatKernel = {kernel[0][0], kernel[0][1], kernel[0][2],
-                                   kernel[1][0], kernel[1][1], kernel[1][2],
-                                   kernel[2][0], kernel[2][1], kernel[2][2]};
+                    kernel[1][0], kernel[1][1], kernel[1][2],
+                    kernel[2][0], kernel[2][1], kernel[2][2]};
             for (int i = 1; i < size; i++) {
                 MPI.COMM_WORLD.Send(flatKernel, 0, 9, MPI.DOUBLE, i, 99);
             }
@@ -104,30 +104,30 @@ public class RealDistributedConvolution {
             for (int i = 1; i < size; i++) {
                 int yStart = (i - 1) * chunkHeight;
                 int yEnd = yStart + chunkHeight + (i == size - 1 ? remainder : 0);
-                
+
                 // Add ghost cells (padding) for boundary handling
                 int yStartWithPadding = Math.max(0, yStart - kernelRadius);
                 int yEndWithPadding = Math.min(height, yEnd + kernelRadius);
                 int actualChunkHeight = yEndWithPadding - yStartWithPadding;
-                
+
                 // Calculate padding amounts
                 int paddingTop = yStart - yStartWithPadding;
                 int paddingBottom = yEndWithPadding - yEnd;
                 int validHeight = yEnd - yStart; // Height of the valid region (without padding)
-                
+
                 int[] pixels = new int[width * actualChunkHeight];
                 inputImage.getRGB(0, yStartWithPadding, width, actualChunkHeight, pixels, 0, width);
 
                 // Send metadata: [width, actualChunkHeight, yStart, paddingTop, validHeight]
                 int[] metadata = {width, actualChunkHeight, yStart, paddingTop, validHeight};
                 MPI.COMM_WORLD.Send(metadata, 0, 5, MPI.INT, i, 0);
-                
+
                 // Send pixel data
                 MPI.COMM_WORLD.Send(pixels, 0, pixels.length, MPI.INT, i, 1);
-                
+
                 System.out.println("Sent chunk " + i + " (y=" + yStart + "-" + yEnd + ", with padding " + yStartWithPadding + "-" + yEndWithPadding + ") to process " + i);
             }
-            
+
             long distributionEndTime = System.nanoTime();
             long collectionStartTime = System.nanoTime();
 
@@ -139,31 +139,31 @@ public class RealDistributedConvolution {
                 int[] receivedMeta = new int[3];
                 MPI.COMM_WORLD.Recv(receivedMeta, 0, 3, MPI.INT, i, 2);
                 int w = receivedMeta[0];
-                int h = receivedMeta[1]; 
+                int h = receivedMeta[1];
                 int yStart = receivedMeta[2];
-                
+
                 // Receive processed pixel data
                 int[] processedPixels = new int[w * h];
                 MPI.COMM_WORLD.Recv(processedPixels, 0, processedPixels.length, MPI.INT, i, 3);
-                
+
                 // Set processed pixels in output image
                 outputImage.setRGB(0, yStart, w, h, processedPixels, 0, w);
-                
+
                 System.out.println("Received processed chunk from process " + i);
             }
 
             // Save output image and measure time
             ImageIO.write(outputImage, "jpg", new File("src/main/resources/output_real_distributed.jpg"));
-            
+
             long endTime = System.nanoTime();
             long collectionEndTime = endTime;
             double executionTimeMs = (endTime - startTime) / 1_000_000.0;
-            
+
             // Calculate timing breakdown
             double setupTimeMs = (setupEndTime - setupStartTime) / 1_000_000.0;
             double distributionTimeMs = (distributionEndTime - distributionStartTime) / 1_000_000.0;
             double collectionTimeMs = (collectionEndTime - collectionStartTime) / 1_000_000.0;
-            
+
             System.out.println("Real distributed convolution completed successfully!");
             System.out.println("Output saved to: src/main/resources/output_real_distributed.jpg");
             System.out.println("=== DETAILED TIMING BREAKDOWN ===");
@@ -172,27 +172,27 @@ public class RealDistributedConvolution {
             System.out.println("Collection time (receive results):" + String.format("%8.3f", collectionTimeMs) + " ms");
             System.out.println("Total execution time:           " + String.format("%8.3f", executionTimeMs) + " ms");
             System.out.println("Available processes: " + size);
-            
+
         } else {
             // Worker process
             System.out.println("Worker process " + rank + " started");
-            
+
             // Receive kernel from master
             double[] flatKernel = new double[9];
             MPI.COMM_WORLD.Recv(flatKernel, 0, 9, MPI.DOUBLE, MASTER, 99);
-            
+
             // Reconstruct 3x3 kernel
             kernel = new double[][]{
-                {flatKernel[0], flatKernel[1], flatKernel[2]},
-                {flatKernel[3], flatKernel[4], flatKernel[5]},
-                {flatKernel[6], flatKernel[7], flatKernel[8]}
+                    {flatKernel[0], flatKernel[1], flatKernel[2]},
+                    {flatKernel[3], flatKernel[4], flatKernel[5]},
+                    {flatKernel[6], flatKernel[7], flatKernel[8]}
             };
-            
-            System.out.println("Worker " + rank + " received kernel: [" + 
-                             flatKernel[0] + ", " + flatKernel[1] + ", " + flatKernel[2] + "; " +
-                             flatKernel[3] + ", " + flatKernel[4] + ", " + flatKernel[5] + "; " +
-                             flatKernel[6] + ", " + flatKernel[7] + ", " + flatKernel[8] + "]");
-            
+
+            System.out.println("Worker " + rank + " received kernel: [" +
+                    flatKernel[0] + ", " + flatKernel[1] + ", " + flatKernel[2] + "; " +
+                    flatKernel[3] + ", " + flatKernel[4] + ", " + flatKernel[5] + "; " +
+                    flatKernel[6] + ", " + flatKernel[7] + ", " + flatKernel[8] + "]");
+
             // Receive metadata: [width, actualChunkHeight, yStart, paddingTop, validHeight]
             int[] metadata = new int[5];
             MPI.COMM_WORLD.Recv(metadata, 0, 5, MPI.INT, MASTER, 0);
@@ -216,13 +216,13 @@ public class RealDistributedConvolution {
             long chunkStartTime = System.nanoTime();
             BufferedImage processedChunk = ConvolutionProcessor.applyConvolution(chunk, kernel);
             long chunkEndTime = System.nanoTime();
-            
-            System.out.println("Process " + rank + " completed convolution in " + 
-                             String.format("%.3f", (chunkEndTime - chunkStartTime) / 1_000_000.0) + " ms");
+
+            System.out.println("Process " + rank + " completed convolution in " +
+                    String.format("%.3f", (chunkEndTime - chunkStartTime) / 1_000_000.0) + " ms");
 
             // Extract only the valid region (remove padding) from processed result
             BufferedImage validRegion = processedChunk.getSubimage(0, paddingTop, width, validHeight);
-            
+
             // Extract processed pixels from valid region only
             int[] resultPixels = new int[width * validHeight];
             validRegion.getRGB(0, 0, width, validHeight, resultPixels, 0, width);
@@ -231,7 +231,7 @@ public class RealDistributedConvolution {
             int[] resultMeta = {width, validHeight, yOffset};
             MPI.COMM_WORLD.Send(resultMeta, 0, 3, MPI.INT, MASTER, 2);
             MPI.COMM_WORLD.Send(resultPixels, 0, resultPixels.length, MPI.INT, MASTER, 3);
-            
+
             System.out.println("Process " + rank + " sent results back to master");
         }
 
