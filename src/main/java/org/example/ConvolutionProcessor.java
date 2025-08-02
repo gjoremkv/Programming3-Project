@@ -13,12 +13,10 @@ public class ConvolutionProcessor {
 
         BufferedImage outputImage = new BufferedImage(width, height, inputImage.getType());
 
-        // loop over each pixel in the input image
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 double red = 0, green = 0, blue = 0;
 
-                // apply kernel
                 for (int i = 0; i < kernelWidth; i++) {
                     for (int j = 0; j < kernelHeight; j++) {
                         int pixelX = x + i - kernelWidth / 2;
@@ -33,12 +31,10 @@ public class ConvolutionProcessor {
                     }
                 }
 
-                // Clamp values to be within RGB range
-                int r = Math.min(Math.max((int) red, 0), 255);
-                int g = Math.min(Math.max((int) green, 0), 255);
-                int b = Math.min(Math.max((int) blue, 0), 255);
+                int r = clamp((int) red, 0, 255);
+                int g = clamp((int) green, 0, 255);
+                int b = clamp((int) blue, 0, 255);
 
-                // set the output pixel
                 outputImage.setRGB(x, y, (r << 16) | (g << 8) | b);
             }
         }
@@ -56,12 +52,10 @@ public class ConvolutionProcessor {
 
         BufferedImage outputImage = new BufferedImage(width, height, inputImage.getType());
 
-        // Process each row in parallel
         IntStream.range(0, height).parallel().forEach(y -> {
             for (int x = 0; x < width; x++) {
                 double red = 0, green = 0, blue = 0;
 
-                // Apply kernel
                 for (int j = 0; j < kernelHeight; j++) {
                     int pixelY = clamp(y + j - ky, 0, height - 1);
                     for (int i = 0; i < kernelWidth; i++) {
@@ -74,7 +68,6 @@ public class ConvolutionProcessor {
                     }
                 }
 
-                // Clamp values to be within RGB range and set output pixel
                 int r = clamp((int) Math.round(red), 0, 255);
                 int g = clamp((int) Math.round(green), 0, 255);
                 int b = clamp((int) Math.round(blue), 0, 255);
@@ -86,13 +79,39 @@ public class ConvolutionProcessor {
         return outputImage;
     }
 
+    public static BufferedImage applyMirror(BufferedImage inputImage) {
+        int width = inputImage.getWidth();
+        int height = inputImage.getHeight();
+        BufferedImage outputImage = new BufferedImage(width, height, inputImage.getType());
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int mirroredX = width - 1 - x;
+                int rgb = inputImage.getRGB(mirroredX, y);
+                outputImage.setRGB(x, y, rgb);
+            }
+        }
+
+        return outputImage;
+    }
+
+    public static BufferedImage applyMirrorParallel(BufferedImage inputImage) {
+        int width = inputImage.getWidth();
+        int height = inputImage.getHeight();
+        BufferedImage outputImage = new BufferedImage(width, height, inputImage.getType());
+
+        IntStream.range(0, height).parallel().forEach(y -> {
+            for (int x = 0; x < width; x++) {
+                int mirroredX = width - 1 - x;
+                int rgb = inputImage.getRGB(mirroredX, y);
+                outputImage.setRGB(x, y, rgb);
+            }
+        });
+
+        return outputImage;
+    }
+
     private static int clamp(int value, int min, int max) {
-        if (value < min) {
-            return min;
-        }
-        if (value > max) {
-            return max;
-        }
-        return value;
+        return Math.max(min, Math.min(max, value));
     }
 }

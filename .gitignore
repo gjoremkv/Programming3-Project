@@ -12,6 +12,7 @@ src/main/resources/gui_operation.txt
 
 # Documentation files (local only)
 *.md
+*.txt
 
 # LaTeX temporary files
 *.aux

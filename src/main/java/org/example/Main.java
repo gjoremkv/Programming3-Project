@@ -10,10 +10,8 @@ public class Main {
         // Default values
         String mode = "sequential"; // sequential, parallel
         String inputResourceName = "/home/gjore/IdeaProjects/prog3project/src/main/resources/test10(3840-2160).jpg";
-
-
         String outputImagePath = "src/main/resources/output4.jpg";
-        String operation = "edge"; // edge, blur, sharpen
+        String operation = "edge"; // edge, blur, sharpen, mirror
 
         // Parse command line arguments
         if (args.length > 0) {
@@ -29,29 +27,29 @@ public class Main {
             operation = args[3].toLowerCase();
         }
 
-        // Define kernels for different operations
+        // Define kernels for convolution operations
         double[][] kernel;
         switch (operation) {
             case "blur":
                 kernel = new double[][]{
-                    {1/9.0, 1/9.0, 1/9.0},
-                    {1/9.0, 1/9.0, 1/9.0},
-                    {1/9.0, 1/9.0, 1/9.0}
+                        {1 / 9.0, 1 / 9.0, 1 / 9.0},
+                        {1 / 9.0, 1 / 9.0, 1 / 9.0},
+                        {1 / 9.0, 1 / 9.0, 1 / 9.0}
                 };
                 break;
             case "sharpen":
                 kernel = new double[][]{
-                    {0, -1, 0},
-                    {-1, 5, -1},
-                    {0, -1, 0}
+                        {0, -1, 0},
+                        {-1, 5, -1},
+                        {0, -1, 0}
                 };
                 break;
             case "edge":
             default:
                 kernel = new double[][]{
-                    {0, -1, 0},
-                    {-1, 4, -1},
-                    {0, -1, 0}
+                        {0, -1, 0},
+                        {-1, 4, -1},
+                        {0, -1, 0}
                 };
                 break;
         }
@@ -67,21 +65,36 @@ public class Main {
             System.out.println("Processing image: " + inputResourceName);
             System.out.println("Image dimensions: " + inputImage.getWidth() + "x" + inputImage.getHeight());
             System.out.println("Mode: " + mode);
+            System.out.println("Selected operation: " + operation);
 
             // Measure execution time
             long startTime = System.nanoTime();
             BufferedImage outputImage;
 
-            switch (mode) {
-                case "sequential":
-                    outputImage = ConvolutionProcessor.applyConvolution(inputImage, kernel);
-                    break;
-                case "parallel":
-                    outputImage = ConvolutionProcessor.applyConvolutionParallel(inputImage, kernel);
-                    break;
-                default:
-                    System.err.println("Invalid mode: " + mode + ". Use 'sequential' or 'parallel'");
-                    return;
+            if (operation.equals("mirror")) {
+                switch (mode) {
+                    case "sequential":
+                        outputImage = ConvolutionProcessor.applyMirror(inputImage);
+                        break;
+                    case "parallel":
+                        outputImage = ConvolutionProcessor.applyMirrorParallel(inputImage);
+                        break;
+                    default:
+                        System.err.println("Mirror operation is only supported in sequential and parallel modes.");
+                        return;
+                }
+            } else {
+                switch (mode) {
+                    case "sequential":
+                        outputImage = ConvolutionProcessor.applyConvolution(inputImage, kernel);
+                        break;
+                    case "parallel":
+                        outputImage = ConvolutionProcessor.applyConvolutionParallel(inputImage, kernel);
+                        break;
+                    default:
+                        System.err.println("Invalid mode: " + mode + ". Use 'sequential' or 'parallel'");
+                        return;
+                }
             }
 
             long endTime = System.nanoTime();
